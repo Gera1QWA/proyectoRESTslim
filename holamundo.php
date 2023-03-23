@@ -155,6 +155,46 @@ $app->get('/detalles/{ISBN}', function (Request $request, Response $response, $a
   
 });
 
+$app->post("/producto", function (Request $request, Response $response, $args) {
+    global $res,$resp;
+    //$response->getBody()->write('hola mundo slim');
+    $params = (array)$request->getParsedBody();
+    $val1 = $params['user'];
+    $val2 = $params['pass'];
+    $val3 = $params['detalles'];
+    $val4 = $params['categoria'];
+    echo($val1);
+    if($res->isUser($val1)){
+       
+        if($res->obtainPass($val1) === md5($val2)){
+            if($res-> isCategoryDB($val4)){
+                $response->getBody()->write("valores:" .$val1 . " " .$val2);
+            }else{
+                $resp['code'] = 500;
+                $resp['message'] =   $res->obtainMessage('500');
+                $json = json_encode($resp);
+                $response->getBody()->write($json);
+            }
+           
+        }else{
+            $resp['code'] = 500;
+            $resp['message'] =   $res->obtainMessage('500');
+            $json = json_encode($resp);
+            $response->getBody()->write($json);
+        }
+
+    }else{
+        $resp['code'] = 500;
+        $resp['message'] =   $res->obtainMessage('500');
+        $json = json_encode($resp);
+        $response->getBody()->write($json);
+
+    }
+    return $response;
+    // $response->getBody()->write("valores:" .$val1 . " " .$val2. $val3 );
+  
+});
+
 
 $app->run();
 

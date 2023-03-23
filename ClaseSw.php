@@ -6,6 +6,30 @@
         public function __construct($project) {
                 $this->project = $project;
         }
+        // private function insertardatosCurl($collection, $document,$data) {
+        //     $url = 'https://'.$this->project.'.firebaseio.com/'.$collection.'/'.$document.'.json';
+        //     $ch =  curl_init();
+        //     curl_setopt($ch, CURLOPT_URL, $url);
+        //     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        //     curl_setopt($ch, CURLOPT_POST, true);
+        //     curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        //     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        
+        //     $response = curl_exec($ch);
+        //     if(curl_exec($ch)){
+        //         echo 'Error '.curl_errno($ch);
+        //         return false;
+        //     }else{
+        //         echo "ya se inserto "
+        //         return  true;
+        //     }
+        //     curl_close($ch);
+        
+        //     // Se convierte a Object o NULL
+        //     //return  true
+        //     //json_decode($response);
+        // }
+
         private function runCurl($collection, $document) {
             $url = 'https://'.$this->project.'.firebaseio.com/'.$collection.'/'.$document.'.json';
             $ch =  curl_init();
@@ -64,6 +88,15 @@
     public function obtainMessage($code)
     {
        return $this->runCurl('respuestas',$code);
+    }
+    public function setProducto($isbn,$data){
+        
+        if(insertardatosCurl('detalles',$isbn,$data)){
+            return true;
+        }else{
+            return false;
+        }
+        
     }
 
 
