@@ -5,7 +5,9 @@ use Slim\Factory\AppFactory;
 use Slim\Factory\ServerRequestCreatorFactory;
 
 require __DIR__ . '../vendor/autoload.php';
-require_once __DIR__.'/ClaseSw.php';
+require_once __DIR__.'/ClaseSw.php'; 
+require_once __DIR__.'/ClaseUsuario.php';
+use ClaseUsuario\Usuario; 
 use ClaseSw\DB;
 
 
@@ -41,8 +43,9 @@ $app->get('/', function (Request $request, Response $response) {
 $app->get('/productos/{categoria}', function (Request $request, Response $response, $args) {  ///obtener productos  por categoria
     global $res;
     global $resp;
+    $user = new Usuario();
     $categoria = $args['categoria'];
-    $headers = $request->getHeaderLine('user');  
+    $user->user= $request->getHeaderLine('user');  
     $headers2 = $request->getHeaderLine('pass');
      //$response->getBody()->write("Hello, $headers");
     // $response->getBody()->write("Hello, $categoria");
@@ -211,7 +214,6 @@ $app->post("/producto", function (Request $request, Response $response, $args) {
                     $resp['status'] = "exito";
                     $resp['data'] = $dt->format('Y-m-d H:i:s');
                     $json = json_encode($resp);
-                    echo($detalles);
                     $response->getBody()->write($json);
 
                 }else{
@@ -362,12 +364,11 @@ $app->delete('/producto', function (Request $request, Response $response, $args)
     $params = (array)$request->getParsedBody();
     $isbn = $params['isbn'];
     $categoria = Obtenercategoria($isbn);    
-    echo($categoria);
     if($res->isUser($user)){
         if($res->obtainPass($user) === md5($pass)){
             if($res->isCategoryDB($categoria)){
                 if($res-> isIsbnDd($isbn)){
-                    
+
                     if($res->deleteProd($categoria,$isbn)){
                         $resp['code'] = 204;
                         $resp['message'] =  $res->obtainMessage('204');
@@ -386,8 +387,8 @@ $app->delete('/producto', function (Request $request, Response $response, $args)
 
 
                 }else{
-                    $resp['code'] = 302;
-                    $resp['message'] =   $res->obtainMessage('302');
+                    $resp['code'] = 305;
+                    $resp['message'] =   $res->obtainMessage('305');
                     $resp['data'] = $dt->format('Y-m-d H:i:s');
                     $json = json_encode($resp);
                     $response->getBody()->write($json);

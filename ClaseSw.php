@@ -10,7 +10,6 @@
             $url = 'https://'.$this->project.'.firebaseio.com/detalles/'.$document.'.json';
         
             $ch =  curl_init();
-            echo($url);
             curl_setopt($ch, CURLOPT_URL, $url);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
@@ -36,7 +35,6 @@
             $url = 'https://'.$this->project.'.firebaseio.com/productos/'.$categoria.'/'.$document.'.json';
         
             $ch =  curl_init();
-            echo($url);
             curl_setopt($ch, CURLOPT_URL, $url);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
