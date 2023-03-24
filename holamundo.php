@@ -38,7 +38,7 @@ $app->get('/', function (Request $request, Response $response) {
     return $response;
 });
 
-$app->get('/productos/{categoria}', function (Request $request, Response $response, $args) {
+$app->get('/productos/{categoria}', function (Request $request, Response $response, $args) {  ///obtener productos  por categoria
     global $res;
     global $resp;
     $categoria = $args['categoria'];
@@ -81,8 +81,8 @@ $app->get('/productos/{categoria}', function (Request $request, Response $respon
         }
 
     }else{
-        $resp['code'] = 500;
-        $resp['message'] =  $res->obtainMessage('500');
+        $resp['code'] = 999;
+        $resp['message'] =  $res->obtainMessage('999');
         $json = json_encode($resp);
         $response->getBody()->write($json);
     }
@@ -91,7 +91,7 @@ $app->get('/productos/{categoria}', function (Request $request, Response $respon
     
   
 });
-$app->get('/detalles', function(Request $request, Response $response){
+$app->get('/detalles', function(Request $request, Response $response){ // obtener detalles
     global $res;
     global $resp;
 
@@ -101,7 +101,7 @@ $app->get('/detalles', function(Request $request, Response $response){
     $response->getBody()->write($json);
     return $response;
 });
-$app->get('/detalles/{ISBN}', function (Request $request, Response $response, $args) {
+$app->get('/detalles/{ISBN}', function (Request $request, Response $response, $args) {// obtener detalles bueno
     global $res;
     global $resp;
     $isbn = $args['ISBN'];
@@ -144,8 +144,8 @@ $app->get('/detalles/{ISBN}', function (Request $request, Response $response, $a
         }
 
     }else{
-        $resp['code'] = 500;
-        $resp['message'] =  $res->obtainMessage('500');
+        $resp['code'] = 999;
+        $resp['message'] =  $res->obtainMessage('999');
         $json = json_encode($resp);
         $response->getBody()->write($json);
     }
@@ -155,23 +155,78 @@ $app->get('/detalles/{ISBN}', function (Request $request, Response $response, $a
   
 });
 
-$app->post("/producto", function (Request $request, Response $response, $args) {
+$app->post("/producto", function (Request $request, Response $response, $args) { // metodo para subir productos 
+    $dt = new DateTime('now',new DateTimeZone('America/Monterrey'));
+
     global $res,$resp;
     //$response->getBody()->write('hola mundo slim');
+   
+    $user = $request->getHeaderLine('user');  
+    $pass = $request->getHeaderLine('pass');
     $params = (array)$request->getParsedBody();
-    $val1 = $params['user'];
-    $val2 = $params['pass'];
-    $val3 = $params['detalles'];
-    $val4 = $params['categoria'];
-    echo($val1);
-    if($res->isUser($val1)){
+    $valores = array(
+        
+            "Autor" => "Edith Eger",
+
+            "Titulo" => "La bailarina de Auschwitz",
+    
+            "Editorial"=> "Editorial Planeta",
+    
+            "Fecha"=> 2017,
+    
+            "Precio"=> 288,
+    
+            "Descuento"=> 0
+        
+    );
+    $valores["Autor"] = $params['autor'];
+    $valores["Titulo"]= $params['titulo'];
+    $valores["Editorial"] = $params['editorial'];
+    $valores["Precio"] = $params['precio']; 
+    $valores["Fecha"] = $params['fecha']; 
+    $isbn = $params['isbn'];
+    $categoria = $params['categoria'];
+    if($res->isUser($user)){
        
-        if($res->obtainPass($val1) === md5($val2)){
-            if($res-> isCategoryDB($val4)){
-                $response->getBody()->write("valores:" .$val1 . " " .$val2);
+        if($res->obtainPass($user) === md5($pass)){
+            if($res-> isCategoryDB($categoria)){
+                if($res->isIsbnDdV2($isbn)){
+                    $data = '{
+                        "'.$isbn.'" : "'.$valores["Titulo"].'" 
+                    }';
+                    $detalles = '{
+                        "'.$isbn.'": {
+                            "Autor": "'.$valores["Autor"].'",
+                            "Titulo": "'.$valores["Titulo"].'",
+                            "Editorial": "'.$valores["Editorial"].'",
+                            "Fecha" : '.$valores["Fecha"].', 
+                            "Precio" : '.$valores["Precio"].', 
+                            "Descuento" : '.$valores["Descuento"].'
+                        }
+                    }';
+                    $res->setProducto($categoria,$data);         //// insercion de producto a categoria de libros
+                    $res->setProductoDetalles($detalles);          //// insercion de producto a la coleccion de detalles 
+                    $resp['code'] = 202;
+                    $resp['message'] =   $res->obtainMessage('202');
+                    $resp['status'] = "exito";
+                    $resp['data'] = $dt->format('Y-m-d H:i:s');
+                    $json = json_encode($resp);
+                    echo($detalles);
+                    $response->getBody()->write($json);
+
+                }else{
+                    $resp['code'] = 302;
+                    $resp['message'] =   $res->obtainMessage('302');
+                    $resp['data'] = $dt->format('Y-m-d H:i:s');
+                    $json = json_encode($resp);
+                    $response->getBody()->write($json);
+                }
+
+
             }else{
-                $resp['code'] = 500;
-                $resp['message'] =   $res->obtainMessage('500');
+                $resp['code'] = 501;
+                $resp['message'] =   $res->obtainMessage('501');
+                $resp['data'] = $dt->format('Y-m-d H:i:s');
                 $json = json_encode($resp);
                 $response->getBody()->write($json);
             }
@@ -179,22 +234,213 @@ $app->post("/producto", function (Request $request, Response $response, $args) {
         }else{
             $resp['code'] = 500;
             $resp['message'] =   $res->obtainMessage('500');
+            $resp['data'] = $dt->format('Y-m-d H:i:s');
             $json = json_encode($resp);
             $response->getBody()->write($json);
         }
 
     }else{
-        $resp['code'] = 500;
-        $resp['message'] =   $res->obtainMessage('500');
+        $resp['code'] = 999;
+        $resp['message'] =   $res->obtainMessage('999');
+        $resp['data'] = $dt->format('Y-m-d H:i:s');
         $json = json_encode($resp);
         $response->getBody()->write($json);
 
     }
     return $response;
-    // $response->getBody()->write("valores:" .$val1 . " " .$val2. $val3 );
+   
   
 });
 
+$app->put('/producto/detalles', function (Request $request, Response $response, $args) { // metodo para subir productos 
+    $dt = new DateTime('now',new DateTimeZone('America/Monterrey'));
+
+    global $res,$resp;
+    //$response->getBody()->write('hola mundo slim');
+   
+    $user = $request->getHeaderLine('user');  
+    $pass = $request->getHeaderLine('pass');
+    $params = (array)$request->getParsedBody();
+    $valores = array(
+        
+            "Autor" => "Edith Eger",
+
+            "Titulo" => "La bailarina de Auschwitz",
+    
+            "Editorial"=> "Editorial Planeta",
+    
+            "Fecha"=> 2017,
+    
+            "Precio"=> 288,
+    
+            "Descuento"=> 0
+        
+    );
+    $valores["Autor"] = $params['autor'];
+    $valores["Titulo"]= $params['titulo'];
+    $valores["Editorial"] = $params['editorial'];
+    $valores["Precio"] = $params['precio']; 
+    $valores["Fecha"] = $params['fecha']; 
+    $isbn = $params['isbn'];
+    $categoria = Obtenercategoria($isbn);    
+    echo($categoria);
+    echo($isbn);
+    //$params['categoria'];
+    if($res->isUser($user)){
+       
+        if($res->obtainPass($user) === md5($pass)){
+            if($res->isCategoryDB($categoria)){
+                if($res->isIsbnDd($isbn)){
+                    $data = '{
+                        "'.$isbn.'" : "'.$valores["Titulo"].'" 
+                    }';
+                    $detalles = '{
+                        "'.$isbn.'": {
+                            "Autor": "'.$valores["Autor"].'",
+                            "Titulo": "'.$valores["Titulo"].'",
+                            "Editorial": "'.$valores["Editorial"].'",
+                            "Fecha" : '.$valores["Fecha"].', 
+                            "Precio" : '.$valores["Precio"].', 
+                            "Descuento" : '.$valores["Descuento"].'
+                        }
+                    }';        
+                    $res->setProductoDetalles($detalles);          //// insercion de producto a la coleccion de detalles 
+                    $res->setProducto($categoria,$data);         //// insercion de producto a categoria de libros
+                    $resp['code'] = 202;
+                    $resp['message'] =   $res->obtainMessage('202');
+                    $resp['status'] = "exito";
+                    $resp['data'] = $dt->format('Y-m-d H:i:s');
+                    $json = json_encode($resp);
+                    $response->getBody()->write($json);
+
+                }else{
+                    $resp['code'] = 302;
+                    $resp['message'] =   $res->obtainMessage('302');
+                    $resp['data'] = $dt->format('Y-m-d H:i:s');
+                    $json = json_encode($resp);
+                    $response->getBody()->write($json);
+                }
+
+
+            }else{
+                $resp['code'] = 300;
+                $resp['message'] =   $res->obtainMessage('300');
+                $resp['data'] = $dt->format('Y-m-d H:i:s');
+                $json = json_encode($resp);
+                $response->getBody()->write($json);
+            }
+           
+        }else{
+            $resp['code'] = 500;
+            $resp['message'] =   $res->obtainMessage('500');
+            $resp['data'] = $dt->format('Y-m-d H:i:s');
+            $json = json_encode($resp);
+            $response->getBody()->write($json);
+        }
+
+    }else{
+        $resp['code'] = 999;
+        $resp['message'] =   $res->obtainMessage('999');
+        $resp['data'] = $dt->format('Y-m-d H:i:s');
+        $json = json_encode($resp);
+        $response->getBody()->write($json);
+
+    }
+    return $response;
+   
+  
+});
+
+$app->delete('/producto', function (Request $request, Response $response, $args) { // metodo para subir productos 
+    $dt = new DateTime('now',new DateTimeZone('America/Monterrey'));
+
+    global $res,$resp;
+    //$response->getBody()->write('hola mundo slim');
+   
+    $user = $request->getHeaderLine('user');  
+    $pass = $request->getHeaderLine('pass');
+    $params = (array)$request->getParsedBody();
+    $isbn = $params['isbn'];
+    $categoria = Obtenercategoria($isbn);    
+    echo($categoria);
+    if($res->isUser($user)){
+        if($res->obtainPass($user) === md5($pass)){
+            if($res->isCategoryDB($categoria)){
+                if($res-> isIsbnDd($isbn)){
+                    
+                    if($res->deleteProd($categoria,$isbn)){
+                        $resp['code'] = 204;
+                        $resp['message'] =  $res->obtainMessage('204');
+                        $resp['status'] = "exito";
+                        $resp['data'] = $dt->format('Y-m-d H:i:s');
+                        $json = json_encode($resp);
+                        $response->getBody()->write($json);
+
+                    }else{
+                        $resp['code'] = 998;
+                        $resp['message'] =   $res->obtainMessage('998');
+                        $resp['data'] = $dt->format('Y-m-d H:i:s');
+                        $json = json_encode($resp);
+                        $response->getBody()->write($json);
+                    }
+
+
+                }else{
+                    $resp['code'] = 302;
+                    $resp['message'] =   $res->obtainMessage('302');
+                    $resp['data'] = $dt->format('Y-m-d H:i:s');
+                    $json = json_encode($resp);
+                    $response->getBody()->write($json);
+                }
+
+
+            }else{
+                $resp['code'] = 300;
+                $resp['message'] =   $res->obtainMessage('300');
+                $resp['data'] = $dt->format('Y-m-d H:i:s');
+                $json = json_encode($resp);
+                $response->getBody()->write($json);
+            }
+           
+        }else{
+            $resp['code'] = 500;
+            $resp['message'] =   $res->obtainMessage('500');
+            $resp['data'] = $dt->format('Y-m-d H:i:s');
+            $json = json_encode($resp);
+            $response->getBody()->write($json);
+        }
+
+    }else{
+        $resp['code'] = 999;
+        $resp['message'] =   $res->obtainMessage('999');
+        $resp['data'] = $dt->format('Y-m-d H:i:s');
+        $json = json_encode($resp);
+        $response->getBody()->write($json);
+
+    }
+    return $response;
+   
+  
+});
+function Obtenercategoria($detalles){
+    if(stripos($detalles,'L')!== false){
+        return "libros";
+    }else{
+        if(strpos($detalles,'M')!== false)
+        {
+            return "mangas";
+        }else{
+            if(strpos($detalles,'C')!== false)
+            {
+                return "comics";
+            }else{
+                return "nu";
+            }
+        }
+        
+    }
+    
+}
 
 $app->run();
 
